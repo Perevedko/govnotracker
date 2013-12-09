@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}{{ project.name|escape }}{% endblock %}
+{% block content %}
+<div class="container">
+  {{ flash() }}
+  {% autoescape true %}
+    <div class="well">
+      {{ show(project) }}<br>
+      {% if project.moderators != [''] %}
+      Модераторы проекта:
+        {% autoescape false %}
+          {{ generate_urls(project.moderators) }}<br><br>
+        {% endautoescape %}
+      {% endif %}
+      {% if session.get('username') == project.author or session.get('username') in project.moderators %}
+        <a class="btn btn-primary" href="{{ url_for('modify_project', url=project.url) }}">Изменить проект</a>
+        <a class="btn btn-danger" href="{{ url_for('delete_project', url=project.url) }}">Удалить проект</a>
+      {% endif %}
+    </div>
+    <div class="row">
+      <div class="span4">
+        <p class="lead">Комментарии</p>
+        {% for num, comment in enumerate(project.comments) %}
+          <div class="alert alert-info message">
+            {% if session.get('username') == project.author or session.get('username') == comment.author %}
+              <a class="close" href="{{ url_for('delete_message', url=project.url, message_types='comments', num=num) }}">×</a>
+            {% endif %}
+            Добавлен {{ comment.time.strftime('%H:%M:%S %d.%m.%Y') }} пользователем <a href="{{ url_for('user', name=comment.author) }}">{{ comment.author }}</a>
+            <p><br>{{ comment.text }}</p><br>
+          </div>
+        {% else %}
+        Пока что нет комментариев.
+        {% endfor %}
+      </div>
+        <div class="span4">
+          <p class="lead">Найденные ошибки</p>
+          {% for num, bug in enumerate(project.bugs) %}
+            <div class="alert alert-error message">
+              {% if session.get('username') == project.author or session.get('username') == bug.author %}
+                <a class="close" id="close{{ num }}" href="{{ url_for('delete_message', url=project.url, message_types='bugs', num=num) }}">×</a>
+              {% endif %}
+              Добавлен {{ bug.time.strftime('%H:%M:%S %d.%m.%Y') }} пользователем <a href="{{ url_for('user', name=bug.author) }}">{{ bug.author }}</a>
+              <p><br>{{ bug.text }}</p><br>
+              {% if session.get('username') != project.author %}
+                Статус: {{ bug.status }}
+              {% else %}
+              Статус
+              <form style="margin: 0px;" action="{{ url_for('change_message_status') }}" method="post">
+                <input type="hidden" name="url" value="{{ project.url }}">
+                <input type="hidden" name="message_types" value="bugs">
+                <input type="hidden" name="num" value="{{ num }}">
+                <select name="status">
+                {% for status in statuses %}
+                  <option{% if status == bug.status %} selected="selected"{% endif %}>{{ status }}</option>
+                {% endfor %}
+                </select>
+                <button class="btn yoba" type="submit">Изменить</button>
+              </form>
+              {% endif %}
+              </div>
+          {% else %}
+          Пока что нет сообщений о найденных ошибках.
+          {% endfor %}
+        </div>
+      <div class="span4">
+        <p class="lead">TODO</p>
+        {% for num, todo in enumerate(project.todos) %}
+          <div class="alert alert-success message">
+            {% if session.get('username') == project.author or session.get('username') == todo.author %}
+              <a class="close" id="close{{ num }}" href="{{ url_for('delete_message', url=project.url, message_types='todos', num=num) }}">×</a>
+            {% endif %}
+            Добавлен {{ todo.time.strftime('%H:%M:%S %d.%m.%Y') }} пользователем <a href="{{ url_for('user', name=todo.author) }}">{{ todo.author }}</a>
+            <p><br>{{ todo.text }}</p><br>
+            {% if session.get('username') != project.author %}
+                Статус: {{ todo.status }}
+            {% else %}
+            Статус
+            <form style="margin: 0px;" action="{{ url_for('change_message_status') }}" method="post">
+              <input type="hidden" name="url" value="{{ project.url }}">
+              <input type="hidden" name="message_types" value="todos">
+              <input type="hidden" name="num" value="{{ num }}">
+              <select name="status">
+              {% for status in statuses %}
+                <option{% if status == todo.status %} selected="selected"{% endif %}>{{ status }}</option>
+              {% endfor %}
+              </select>
+              <button class="btn yoba" type="submit">Изменить</button>
+            </form>
+            {% endif %}
+          </div>
+        {% else %}
+        Пока что нет TODO.
+        {% endfor %}
+      </div>
+    </div>
+    {% if session.get('logged') %}
+    <form class="form-horizontal well" action="{{ url_for('add_message', url=project.url) }}" method="post">
+      <fieldset>
+        <legend>Добавить сообщение</legend>
+        <div class="control-group">
+          <label class="control-label" for="message">Текст сообщения</label>
+          <div class="controls">
+            <textarea class="input-xlarge" id="message" name="message" rows="3"></textarea>
+          </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label" for="type">Тип</label>
+            <div class="controls">
+              <select id="type" name="type">
+                <option value="comments">Комментарий</option>
+                <option value="bugs">Сообщение об ошибке</option>
+                <option value="todos">TODO</option>
+              </select>
+            </div>
+          </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Добавить сообщения</button>
+          <button type="reset" class="btn">ОТМЕНА</button>
+        </div>
+      </fieldset>
+    </form>
+    {% else %}
+      Чтобы добавлять комментарии, <a href="{{ url_for('login') }}">войдите</a>
+    {% endif %}
+  {% endautoescape %}
+</div>
+{% endblock %}

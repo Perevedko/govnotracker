@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Регистрация{% endblock %}
+{% block content %}
+<div class="container">
+  {{ flash() }}
+  <form class="form-horizontal well" action="{{ url_for('register') }}" method="post">
+    <fieldset>
+      <legend>Регистрация</legend>
+      <div class="control-group">
+        <label class="control-label" for="username">Имя пользователя</label>
+        <div class="controls">
+          <input class="input-xlarge" id="username" name="username" placeholder="имя пользователя" type="text">
+          <p class="help-block">Может состоять из латиницы и цифр.</p>
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label" for="password">Пароль</label>
+        <div class="controls">
+          <input class="inpus-xlarge" id="password" name="password" placeholder="пароль" type="password">
+          <p class="help-block">Может состоять из латиницы и цифр.</p>
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label" for="categories">Категории</label>
+        <div class="controls">
+          {% for num, category in enumerate(categories) %}
+          {% with name = "checkbox{0}".format(num) %}
+          <label class="checkbox">
+            <input type="checkbox" id="{{ name }}" name="{{ name }}"></input>{{ category }}<br>
+          </label>
+          {% endwith %}
+          {% endfor %}
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Зарегистрироваться</button>
+      </div>
+    </fieldset>
+  </form>
+</div>
+{% endblock %}

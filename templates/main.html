@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}yobatracker{% endblock %}
+{% block content %}
+<div class="container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+  <h1>Проекты</h1>
+  <a class="btn btn-primary" style="margin: 10px 0px 10px 0px;" href="{{ url_for('add') }}">Создать проект</a>
+  {% for project in projects %}
+  {% autoescape true %}
+    <div class="well">
+      {{ show(project) }}
+      Комментарии: {{ project.comments|length }}
+    </div>
+  {% endautoescape %}
+  {% else %}
+    <p class="head"><br>Пока что нет проектов.</p>
+  {% endfor %}
+</div>
+{% endblock %}

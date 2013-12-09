@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Поиск{% endblock %}
+{% block content %}
+<div class="container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+  {% for project in projects %}
+  {% autoescape true %}
+    <div class="well">
+      <a href="{{ url_for('get_project', url=project.url) }}"><h2>{{ project.name }}</h2></a>
+      Добавлен {{ project.time.strftime('%H:%M:%S %d.%m.%Y') }} пользователем <a href="{{ url_for('user', name=project.author)}}">{{ project.author }}</a><br>
+      <p>{{ project.description }}</p><br>
+      Статус: {{ project.status }}<br>
+      Комментарии: {{ project.comments|length }}
+    </div>
+  {% endautoescape %}
+  {% else %}
+    <br>Нет таких проектов.
+  {% endfor %}
+</div>
+{% endblock %}

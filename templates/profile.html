@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Профиль{% endblock %}
+{% block content %}
+<div class="container">
+  {{ flash() }}
+  <h2>Профиль пользователя {{ user.username }}</h2>
+  {% if user.categories %}
+  Категории:
+    {{ user.categories|join(', ')|lower }}<br>
+  {% endif %}
+  {% if projects.count() %}
+    <p class="lead">Проекты пользователя:</p>
+  {% endif %}
+  {% for project in projects %}
+  {% autoescape true %}
+    <div class="well">
+      {{ show(project) }}
+      Комментарии: {{ project.comments|length }}
+    </div>
+  {% endautoescape %}
+  {% else %}
+    <br>Пользователь не создавал проектов.
+  {% endfor %}
+</div>
+{% endblock %}

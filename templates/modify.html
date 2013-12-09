@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Изменить проект{% endblock %}
+{% block content %}
+<div class="container">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+  {% autoescape true %}
+  <form class="form-horizontal well" action="{{ url_for('modify_project', url=project.url) }}" method="post">
+    <fieldset>
+      <legend>Изменить проект</legend>
+      <div class="control-group">
+        <label class="control-label" for="name">Название</label>
+        <div class="controls">
+          <input class="input-xlarge" id="name" name="name" type="text" value="{{ project.name }}">
+        </div>
+      </div>
+      <div class="url">
+        <label class="control-label" for="url">Ссылка</label>
+        <div class="controls">
+          <input class="input-xlarge" id="url" name="url" type="text" value="{{ project.url }}">
+          <p class="help-block">
+            URL, по которому будет доступен проект.<br>
+            yobatracker/project/&lt;url&gt;
+          </p>
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label" for="description">Описание</label>
+        <div class="controls">
+          <textarea class="input-xlarge" id="description" name="description" rows="3">{{ project.description }}</textarea>
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label" for="status">Статус</label>
+        <div class="controls">
+          <input class="input-xlarge" id="status" name="status" type="text" value="{{ project.status }}">
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label" for="progress">Прогресс</label>
+        <div class="controls">
+          <div class="input-append">
+            <div class="input-xlarge">
+              <input style="width: 243px; text-align: right;" id="progress" name="progress" type="text" value="{{ project.progress }}">
+              <span class="add-on">%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="control-group">
+        <label class="control-label" for="moderators">Модераторы проекта</label>
+        <div class="controls">
+        {% with not_author = session.get('username') != project.author %}
+          {% with moderators = project.get('moderators')|join(', ') %}
+          <input name="moderators" id="moderators" class="input-xlarge{% if not_author %} disabled{% endif %}" type="text"{% if not_author %} disabled=""{% endif %} value="{{ moderators }} "{% if not_author %} placeholder="{{ moderators }}"{% endif %}>
+          {% endwith %}
+        {% endwith %}
+          <p class="help-block">Должны быть разделены запятыми.</p>
+        </div>
+
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+        <a class="btn btn-danger" href="{{ url_for('delete_project', url=project.url) }}">Удалить проект</a>
+        <a class="btn" href="{{ url_for('get_project', url=project.url) }}" class="btn">ОТМЕНА</a>
+      </div>
+    </fieldset>      
+  </form>
+  {% endautoescape %}
+</div>
+{% endblock %}

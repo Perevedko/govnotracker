@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Список пользователей{% endblock %}
+{% block content %}
+<div class="container">
+  <h2>Список пользователей</h2>
+  {% for user in users %}
+    <a href="{{ url_for('user', name=user.username) }}">{{ user.username }}</a><br>
+  {% else %}
+  <p class="lead">Пока что нет пользователей.</p>
+  {% endfor %}
+</div>
+{% endblock %}
