@@ -3,13 +3,14 @@ from __future__ import unicode_literals
 from flask import Flask, request, session, g, redirect, url_for, abort, render_template, flash, escape, jsonify
 from pymongo import MongoClient
 import re
+import os
 from datetime import datetime
 import hashlib
 import string
 
 # config
-DEBUG = True
-SECRET_KEY = 'Bv\x96\xb0\x06\xdf\xe0\xbd\xe3S\xb4*\x1dWa\xedb\r\xe1\nmGe\xff\xc1\xa9\xb7\x93\x85m'
+DEBUG = False
+SECRET_KEY = str(os.urandom(30))
 
 
 app = Flask(__name__)
