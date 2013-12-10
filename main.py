@@ -10,7 +10,7 @@ import string
 
 # config
 DEBUG = False
-SECRET_KEY = str(os.urandom(30))
+SECRET_KEY = '6234dlBZKS*)S"SPMhfuD7jiq54hAFDJuf7dkL;d)08dJH'
 
 
 app = Flask(__name__)
