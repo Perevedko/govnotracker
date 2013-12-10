@@ -2,13 +2,7 @@
 {% block title %}Изменить проект{% endblock %}
 {% block content %}
 <div class="container">
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }}">{{ message }}</div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
+  {{ flash() }}
   {% autoescape true %}
   <form class="form-horizontal well" action="{{ url_for('modify_project', url=project.url) }}" method="post">
     <fieldset>

@@ -2,13 +2,7 @@
 {% block title %}yobatracker{% endblock %}
 {% block content %}
 <div class="container">
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      {% for category, message in messages %}
-        <div class="alert alert-{{ category }}">{{ message }}</div>
-      {% endfor %}
-    {% endif %}
-  {% endwith %}
+  {{ flash() }}
   <h1>Проекты</h1>
   <a class="btn btn-primary" style="margin: 10px 0px 10px 0px;" href="{{ url_for('add') }}">Создать проект</a>
   {% for project in projects %}

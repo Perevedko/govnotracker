@@ -6,10 +6,12 @@ import re
 from datetime import datetime
 import hashlib
 import string
+from functools import wraps
+import os
 
 # config
-DEBUG = True
-SECRET_KEY = 'Bv\x96\xb0\x06\xdf\xe0\xbd\xe3S\xb4*\x1dWa\xedb\r\xe1\nmGe\xff\xc1\xa9\xb7\x93\x85m'
+DEBUG = False # я ждал этого 4 месяца
+SECRET_KEY = os.urandom(30) # это нужно поменять, чтоб куки не ломались
 
 
 app = Flask(__name__)
@@ -21,9 +23,18 @@ db = client.tracker
 def make_hash(obj):
     return hashlib.sha1(obj).hexdigest()
 
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not session.get('logged'):
+            flash('Требуется вход.', 'error')
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 categories = ['Программирование', 'Дизайн', 'Верстка']
 allowed_message_types = ['comments', 'bugs', 'todos']
-statuses = ['не рассмотренно', 'рассмотренно', 'принято', 'отклонено']
+statuses = ['не рассмотренно', 'рассмотренно', 'принято', 'отклонено', 'запилено']
 
 @app.route('/')
 def main():
@@ -89,10 +100,8 @@ def logout():
 
 
 @app.route('/add', methods=['GET', 'POST'])
+@login_required
 def add():
-    if not session.get('logged'):
-        flash('Вы должны войти, чтобы добавить проект.', 'error')
-        return redirect(url_for('login'))
     if request.method == 'POST':
         project = {}
         project['name'] = request.form['name']
@@ -211,14 +220,12 @@ def modify_project(url):
         return render_template('modify.html', project=project)
 
 @app.route('/delete/project/<url>')
+@login_required
 def delete_project(url, confirm=False):
     confirm = request.args.get('confirm') == 'True'
     project = db.projects.find_one( {'url': url} )
     if not project:
         abort(404)
-    if not session['logged']:
-        flash('Вы должны быть залогинены, чтобы удалять проект', 'error')
-        return redirect(url_for('login'))
     if not confirm:
         return render_template('confirm_delete.html', project=project)
     db.projects.remove( {'url': url} )
@@ -226,10 +233,8 @@ def delete_project(url, confirm=False):
     return redirect(url_for('main'))
 
 @app.route('/add_message/<url>', methods=['POST'])
+@login_required
 def add_message(url):
-    if not session.get('logged'):
-        flash('Вы должны быть залогинены, чтобы добавлять комментарий', 'error')
-        return redirect(url_for('login'))
     message_type = request.form['type']
     if message_type not in allowed_message_types:
         return redirect(url_for('get_project', url=url))
@@ -252,7 +257,7 @@ def add_message(url):
                     'author': author,
                     'time': time,
                     'text': text,
-                    'status': 'не рассмотренно'
+                    'status': statuses[0]
                 }
             },
         }
@@ -260,12 +265,8 @@ def add_message(url):
     return redirect(url_for('get_project', url=url))
 
 
-@app.route('/delete/<url>/<message_types>/<num>')
+@app.route('/delete/<url>/<message_types>/<int:num>')
 def delete_message(url, message_types, num):
-    try:
-        num = int(num)
-    except Exception:
-        return redirect(url_for('get_project', url=url))
     if message_types not in allowed_message_types:
         return redirect(url_for('get_project', url_for))
     project = db.projects.find_one( {'url': url} )
@@ -352,34 +353,20 @@ def user(name):
 
 @app.route('/search', methods=['GET', 'POST'])
 def search():
-    search = request.form['search']
-    r = {'$regex': search, '$options': '-i'}
-    projects = db.projects.find({
-        '$or': [
-            {'name': r},
-            {'description': r},
-            {'author': r},
-            {'status': r}
-        ]
-    })
-    return render_template('search.html', projects=projects.sort( [('time', -1)] ))
-
-@app.route('/_add_numbers')
-def add_numbers():
-    from operator import add, sub, mul, div
-    a = request.args.get('a', 0, type=int)
-    action = {
-        '+': add,
-        '-': sub,
-        '*': mul,
-        '/': lambda a, b: 'NaN' if b == 0 else div(a, b)
-    }.get(request.args.get('action', lambda *a, **kw: None, type=str))
-    b = request.args.get('b', 0, type=int)
-    return jsonify(result=action(a, b))
-
-@app.route('/ajax')
-def ajax_test():
-    return render_template('ajax_test.html')
+    if request.method == 'POST':
+        search = request.form['search']
+        r = {'$regex': search, '$options': '-i'}
+        projects = db.projects.find({
+            '$or': [
+                {'name': r},
+                {'description': r},
+                {'author': r},
+                {'status': r}
+            ]
+        })
+        return render_template('search.html', projects=projects.sort( [('time', -1)] ))
+    if request.method == 'GET':
+        return render_template('search.html')
 
 @app.route('/about')
 def about():
